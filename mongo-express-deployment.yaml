@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom: 
+            secretKeyRef:
+                name: mongodb-secret
+                key: MONGO_USER_NAME
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom: 
+            secretKeyRef:
+                name: mongodb-secret
+                key: MONGO_PASSWORD
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom: 
+            configMapKeyRef:
+                name: mongodb-configmap
+                key: MONGO_DB_URL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+  labels:
+    app: node-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node-app
+        image: nirmshah/node-app:39
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MONGO_DB_USERNAME
+          valueFrom: 
+            secretKeyRef:
+                name: mongodb-secret
+                key: MONGO_USER_NAME
+        - name: MONGO_DB_PWD
+          valueFrom: 
+            secretKeyRef:
+                name: mongodb-secret
+                key: MONGO_PASSWORD
+        - name: MONGO_DB_SERVER
+          valueFrom: 
+            configMapKeyRef:
+                name: mongodb-configmap
+                key: MONGO_DB_URL 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-express-service
+spec:
+  selector:
+    app: mongo-express
+  type: LoadBalancer
+  ports:
+    - protocol : TCP
+      port : 8081
+      targetPort : 8081  
+      nodePort: 30001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-service
+spec:
+  selector:
+    app: node-app
+  type: LoadBalancer
+  ports:
+    - protocol : TCP
+      port : 3000
+      targetPort : 3000
+      nodePort: 30002

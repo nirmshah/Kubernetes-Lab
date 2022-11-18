@@ -1,0 +1,19 @@
+minikube start
+minikube service <public service name>
+minikube status
+minikube dashboard --url
+
+kubectl get pods
+kubectl get deployment
+kubectl get secrets
+kubectl get configmaps
+kubectl get namespaces
+
+kubectl create deployment hello-node --image=registry.k8s.io/echoserver:1.4
+kubectl get pods < pod name> --watch
+kubectl describe pod <podname>
+kubectl apply -f <file name>
+kubectl logs <pod name>
+kubectl get all
+
+Kubectl inspect  -it <contaimer name> /bin/sh 
